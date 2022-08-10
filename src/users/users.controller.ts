@@ -1,11 +1,15 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
+  Param,
   Post,
   Request,
+  Session,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -25,7 +29,7 @@ export class UsersController {
     @Body('username') username: string,
     @Body('password') password: string,
   ) {
-    const salt = process.env.SALT;
+    const salt = Number(process.env.SALT);
     const hashadPassword = await bcrypt.hash(password, salt);
     const result = await this.usersService.insertUser(
       name,
@@ -33,6 +37,9 @@ export class UsersController {
       hashadPassword,
     );
     console.log(result);
+    if (!result?.id) {
+      throw new HttpException('Gone', HttpStatus.GONE);
+    }
     return {
       msg: 'User successfully registered',
       userId: result.id,
@@ -51,17 +58,27 @@ export class UsersController {
     };
   }
 
-  @UseGuards(AuthenticatedGuard)
-  @Get('/protected')
-  getHello(@Request() req): Promise<any> {
-    return req.user;
-  }
-
   @Get('/logout')
-  logout(@Request() req): any {
-    req.session.destroy();
+  logout(@Session() session): any {
+    session.destroy();
     return {
       msg: 'The user session has ended',
     };
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Delete(':id')
+  @HttpCode(HttpStatus.RESET_CONTENT)
+  async delete(@Param('id') id: string, @Session() session: any): Promise<any> {
+    const isDeleted = await this.usersService.deleteUser(id);
+    session.destroy();
+    console.log(isDeleted);
+    return isDeleted
+      ? {
+          msg: 'Users successfully deleted!',
+        }
+      : {
+          msg: 'Error!',
+        };
   }
 }

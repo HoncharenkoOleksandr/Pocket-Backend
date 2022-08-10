@@ -4,11 +4,11 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userrService: UsersService) {}
+  constructor(private readonly userService: UsersService) {}
 
   async validateUser(username: string, password: string) {
     try {
-      const user = await this.userrService.getUser(username);
+      const user = await this.userService.getUser(username);
       const passwordValid = await bcrypt.compare(password, user.password);
       if (!user) {
         throw new NotAcceptableException('could not find the user');

@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
 import { AuthModule } from './auth/auth.module';
+import { PocketModule } from './pocket/pocket.module';
 
 const env = ConfigModule.forRoot({
   envFilePath: `.${process.env.NODE_ENV}.env`,
@@ -16,7 +17,7 @@ const DBConnection = MongooseModule.forRoot(
 );
 
 @Module({
-  imports: [env, DBConnection, UsersModule, AuthModule],
+  imports: [env, DBConnection, UsersModule, AuthModule, PocketModule],
   controllers: [AppController, UsersController],
   providers: [AppService],
 })
