@@ -11,13 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PocketService } from './pocket.service';
-import { AuthenticatedGuard } from '../auth/authenticated.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('pocket')
 export class PocketController {
   constructor(private readonly pocketSevice: PocketService) {}
 
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/create')
   @HttpCode(HttpStatus.CREATED)
   async createPocketItem(
@@ -26,26 +26,35 @@ export class PocketController {
     @Body('name') name: string,
   ): Promise<any> {
     try {
-      const result = await this.pocketSevice.insertPocketItem(
+      const result: any = await this.pocketSevice.insertPocketItem(
         owner,
         link,
         name,
       );
+
+      if (result?.errors) {
+        return {
+          msg: 'Failed',
+          pocketItem: result,
+        };
+      }
+
       return {
         msg: 'Created',
         pocketItem: result,
       };
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 
-  @UseGuards(AuthenticatedGuard)
-  @Get('/all/:id')
+  @UseGuards(JwtAuthGuard)
+  @Get('/all')
   @HttpCode(HttpStatus.OK)
   async getPocket(@Param('id') id): Promise<any> {
     try {
-      const result = await this.pocketSevice.getPocket(id);
+      const result = await this.pocketSevice.getPocket('asd');
 
       if (!result || !result[0]) {
         throw new HttpException('Not found!', HttpStatus.NOT_FOUND);
@@ -57,10 +66,11 @@ export class PocketController {
       };
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('/delete/:id')
   @HttpCode(HttpStatus.ACCEPTED)
   async deletePocketItem(@Param('id') id): Promise<any> {
@@ -76,6 +86,7 @@ export class PocketController {
       };
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 }

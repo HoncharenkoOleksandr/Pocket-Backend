@@ -8,18 +8,30 @@ import {
   HttpStatus,
   Param,
   Post,
-  Request,
-  Session,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import * as bcrypt from 'bcrypt';
-import { LocalAuthGuard } from 'src/auth/local.auth.guard';
-import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/me/:username')
+  @HttpCode(HttpStatus.OK)
+  async me(@Param() param) {
+    if (!param.username) {
+      return {
+        msg: 'Username is required',
+      };
+    }
+    const user = await this.usersService.getUser(param.username);
+    const { id, name, username } = user;
+    return { id, name, username };
+  }
 
   // Post / SignUp
   @Post('/signup')
@@ -36,7 +48,7 @@ export class UsersController {
       username,
       hashadPassword,
     );
-    console.log(result);
+
     if (!result?.id) {
       throw new HttpException('Gone', HttpStatus.GONE);
     }
@@ -47,32 +59,11 @@ export class UsersController {
     };
   }
 
-  // Post / Login
-  @UseGuards(LocalAuthGuard)
-  @Post('/login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Request() req): Promise<any> {
-    return {
-      user: req.user,
-      msg: 'User logged in!',
-    };
-  }
-
-  @Get('/logout')
-  logout(@Session() session): any {
-    session.destroy();
-    return {
-      msg: 'The user session has ended',
-    };
-  }
-
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.RESET_CONTENT)
-  async delete(@Param('id') id: string, @Session() session: any): Promise<any> {
+  async delete(@Param('id') id: string): Promise<any> {
     const isDeleted = await this.usersService.deleteUser(id);
-    session.destroy();
-    console.log(isDeleted);
     return isDeleted
       ? {
           msg: 'Users successfully deleted!',

@@ -29,6 +29,7 @@ export class PocketService {
       return newPocketItem;
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 
@@ -41,6 +42,7 @@ export class PocketService {
       return pocket;
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 
@@ -53,6 +55,7 @@ export class PocketService {
       return res;
     } catch (e) {
       console.log(e);
+      return e;
     }
   }
 }
