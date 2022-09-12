@@ -3,30 +3,35 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
-  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { PocketService } from './pocket.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtUtil } from '../auth/jwt.util';
 
 @Controller('pocket')
 export class PocketController {
-  constructor(private readonly pocketSevice: PocketService) {}
+  constructor(
+    private readonly pocketService: PocketService,
+    private readonly jwtUtil: JwtUtil,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')
   @HttpCode(HttpStatus.CREATED)
   async createPocketItem(
-    @Body('owner') owner: string,
     @Body('link') link: string,
     @Body('name') name: string,
+    @Headers('Authorization') auth: string,
   ): Promise<any> {
     try {
-      const result: any = await this.pocketSevice.insertPocketItem(
+      const { id: owner } = await this.jwtUtil.decode(auth);
+      const result: any = await this.pocketService.insertPocketItem(
         owner,
         link,
         name,
@@ -50,12 +55,12 @@ export class PocketController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/all')
+  @Get('all')
   @HttpCode(HttpStatus.OK)
-  async getPocket(@Param('id') id): Promise<any> {
+  async getPocket(@Headers('Authorization') auth: string): Promise<any> {
     try {
-      const result = await this.pocketSevice.getPocket('asd');
-
+      const { id } = await this.jwtUtil.decode(auth);
+      const result = await this.pocketService.getPockets(id);
       if (!result || !result[0]) {
         throw new HttpException('Not found!', HttpStatus.NOT_FOUND);
         return;
@@ -71,11 +76,12 @@ export class PocketController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/delete/:id')
+  @Delete('/')
   @HttpCode(HttpStatus.ACCEPTED)
-  async deletePocketItem(@Param('id') id): Promise<any> {
+  async deletePocketItem(@Headers('Authorization') auth: string): Promise<any> {
     try {
-      const result = await this.pocketSevice.deletePocketItem(id);
+      const { id } = await this.jwtUtil.decode(auth);
+      const result = await this.pocketService.deletePocketItem(id);
       if (!result) {
         throw new HttpException('Not found!', HttpStatus.NOT_FOUND);
         return;

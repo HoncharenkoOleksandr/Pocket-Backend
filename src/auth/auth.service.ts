@@ -18,7 +18,6 @@ export class AuthService {
       if (user && validPassword) {
         const payload = {
           username: user.username,
-          name: user.name,
           id: user.id,
         };
         return payload;
@@ -31,7 +30,8 @@ export class AuthService {
   }
 
   async login(user: UserDocument) {
-    const payload = { username: user.username, id: user.id };
+    const userFromDB = await this.usersService.getUser(user.username);
+    const payload = { username: userFromDB.username, id: userFromDB.id };
 
     return {
       access_token: this.jwtService.sign(payload),

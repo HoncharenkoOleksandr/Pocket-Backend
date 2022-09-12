@@ -33,9 +33,8 @@ export class PocketService {
     }
   }
 
-  public async getPocket(id: string): Promise<Pocket[] | undefined> {
+  public async getPockets(id: string): Promise<Pocket[] | undefined> {
     try {
-      console.log(id);
       const pocket = await this.pocketModel.find({
         owner: id,
       });

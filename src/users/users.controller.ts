@@ -3,32 +3,31 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
-  Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtUtil } from '../auth/jwt.util';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtUtil: JwtUtil,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('/me/:username')
+  @Get('/me')
   @HttpCode(HttpStatus.OK)
-  async me(@Param() param) {
-    if (!param.username) {
-      return {
-        msg: 'Username is required',
-      };
-    }
-    const user = await this.usersService.getUser(param.username);
+  async me(@Headers('Authorization') auth: string) {
+    const { username: userName } = await this.jwtUtil.decode(auth);
+    const user = await this.usersService.getUser(userName);
     const { id, name, username } = user;
     return { id, name, username };
   }
@@ -60,16 +59,17 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @Delete('/')
   @HttpCode(HttpStatus.RESET_CONTENT)
-  async delete(@Param('id') id: string): Promise<any> {
+  async delete(@Headers('Authorization') auth: string): Promise<any> {
+    const { id } = await this.jwtUtil.decode(auth);
     const isDeleted = await this.usersService.deleteUser(id);
-    return isDeleted
-      ? {
-          msg: 'Users successfully deleted!',
-        }
-      : {
-          msg: 'Error!',
-        };
+    if (!isDeleted) {
+      throw new HttpException('Not found!', HttpStatus.NOT_FOUND);
+      return;
+    }
+    return {
+      msg: 'Users successfully deleted!',
+    };
   }
 }
