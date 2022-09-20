@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -78,8 +79,12 @@ export class PocketController {
   @UseGuards(JwtAuthGuard)
   @Delete('/')
   @HttpCode(HttpStatus.ACCEPTED)
-  async deletePocketItem(@Headers('Authorization') auth: string): Promise<any> {
+  async deletePocketItem(
+    @Headers('Authorization') auth: string,
+    @Param('id') pocketId: string,
+  ): Promise<any> {
     try {
+      console.log(pocketId);
       const { id } = await this.jwtUtil.decode(auth);
       const result = await this.pocketService.deletePocketItem(id);
       if (!result) {
