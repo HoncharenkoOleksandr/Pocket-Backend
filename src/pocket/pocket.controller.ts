@@ -36,14 +36,13 @@ export class PocketController {
     try {
       const { id: owner } = await this.jwtUtil.decode(auth);
       const { title, image, description } = await grabity.grabIt(link);
-
       const result: any = await this.pocketService.insertPocketItem(
         owner,
         link,
-        name,
         title,
         image,
         description,
+        name,
       );
 
       if (result?.errors) {
