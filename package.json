@@ -32,6 +32,7 @@
     "bcrypt": "^5.0.1",
     "cross-env": "^7.0.3",
     "express-session": "^1.17.3",
+    "grabity": "^1.0.5",
     "mongoose": "^6.4.6",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",

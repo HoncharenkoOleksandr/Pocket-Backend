@@ -15,6 +15,9 @@ import { PocketService } from './pocket.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { JwtUtil } from '../auth/jwt.util';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const grabity = require('grabity');
+
 @Controller('pocket')
 export class PocketController {
   constructor(
@@ -32,10 +35,15 @@ export class PocketController {
   ): Promise<any> {
     try {
       const { id: owner } = await this.jwtUtil.decode(auth);
+      const { title, image, description } = await grabity.grabIt(link);
+
       const result: any = await this.pocketService.insertPocketItem(
         owner,
         link,
         name,
+        title,
+        image,
+        description,
       );
 
       if (result?.errors) {
@@ -86,7 +94,7 @@ export class PocketController {
     try {
       console.log(pocketId);
       const { id } = await this.jwtUtil.decode(auth);
-      const result = await this.pocketService.deletePocketItem(id);
+      const result = await this.pocketService.deletePocketItem(pocketId);
       if (!result) {
         throw new HttpException('Not found!', HttpStatus.NOT_FOUND);
         return;
