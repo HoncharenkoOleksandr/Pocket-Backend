@@ -16,6 +16,15 @@ export class Pocket {
   @Prop({ required: true })
   link: string;
 
+  @Prop({ required: true })
+  title: string;
+
+  @Prop()
+  description: string;
+
+  @Prop()
+  image: string;
+
   @Prop()
   createdAt: Date;
 }

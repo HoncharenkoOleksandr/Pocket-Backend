@@ -12,6 +12,9 @@ export class PocketService {
   public async insertPocketItem(
     owner: string,
     link: string,
+    title: string,
+    image: string,
+    description: string,
     name?: string,
   ): Promise<Pocket | undefined> {
     try {
@@ -24,6 +27,9 @@ export class PocketService {
         link,
         createdAt,
         name: pocketName,
+        title,
+        description,
+        image,
       });
       await newPocketItem.save();
       return newPocketItem;
@@ -47,7 +53,6 @@ export class PocketService {
 
   public async deletePocketItem(id: string): Promise<any> {
     try {
-      console.log(id);
       const res = await this.pocketModel.findOneAndDelete({
         id,
       });
